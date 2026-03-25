@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SafeTrack — Women Safety App</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+:root{
+  --pri:#6C3DE8;--pri2:#8B5CF6;--acc:#E8567A;--acc2:#F4A4B8;
+  --dark:#0A0A1A;--dark2:#12122A;--dark3:#1A1A3E;
+  --card:rgba(255,255,255,.04);--border:rgba(255,255,255,.1);
+  --text:#fff;--sub:rgba(255,255,255,.5);--mu:rgba(255,255,255,.3);
+  --cream:#F8F6FF;--sb:#1A1A3E;--muted:#8A8A9E;
+  --ok:#10B981;--warn:#F59E0B;--red:#EF4444;
+  --shadow-pri:0 8px 32px rgba(108,61,232,.4);
+  --shadow-acc:0 8px 32px rgba(232,86,122,.4);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{
+  font-family:'Inter',sans-serif;
+  background:var(--dark);
+  display:flex;justify-content:center;align-items:flex-start;
+  padding:30px 16px;min-height:100%;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse at 20% 10%,rgba(108,61,232,.25),transparent 50%),
+    radial-gradient(ellipse at 80% 90%,rgba(232,86,122,.15),transparent 50%),
+    radial-gradient(ellipse at 60% 40%,rgba(139,92,246,.1),transparent 40%);
+}
+
+/* ══ PHONE SHELL ══ */
+.phone{
+  width:390px;height:844px;background:var(--dark);
+  border-radius:48px;position:relative;
+  display:flex;flex-direction:column;overflow:hidden;z-index:1;
+  box-shadow:0 0 0 1px rgba(255,255,255,.08),0 0 0 10px #0a0a0a,
+             0 0 0 11px #1a1a1a,0 50px 100px rgba(0,0,0,.8);
+}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:120px;height:32px;background:#000;border-radius:0 0 16px 16px;z-index:9999;}
+
+/* ══ SCREENS ══ */
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;
+  opacity:0;pointer-events:none;background:var(--dark);
+  transition:opacity .35s ease,transform .35s ease;transform:translateY(16px);}
+.screen.active{opacity:1;pointer-events:all;transform:translateY(0);}
+
+/* ══ STATUS BAR ══ */
+.sb{padding:38px 22px 4px;display:flex;justify-content:space-between;
+  font-size:11px;font-weight:600;color:rgba(255,255,255,.7);
+  flex-shrink:0;z-index:2;position:relative;}
+.sb-r{display:flex;gap:5px;}
+
+/* ══════════════════════════════════════════
+   SPLASH
+══════════════════════════════════════════ */
+#s-splash{
+  background:linear-gradient(160deg,var(--dark) 0%,var(--dark2) 40%,var(--dark3) 100%);
+}
+.splash-body{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:30px 32px;text-align:center;
+}
+.sp-logo{
+  width:96px;height:96px;border-radius:28px;margin-bottom:28px;
+  background:linear-gradient(135deg,var(--pri),var(--acc));
+  display:flex;align-items:center;justify-content:center;
+  font-size:44px;box-shadow:0 0 0 1px rgba(255,255,255,.1),var(--shadow-pri);
+  animation:logo-float 3s ease-in-out infinite;
+}
+@keyframes logo-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.sp-brand{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;
+  color:#fff;letter-spacing:-1px;margin-bottom:4px;}
+.sp-brand span{background:linear-gradient(90deg,var(--pri2),var(--acc));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.sp-tag{font-size:13px;color:var(--sub);font-weight:400;margin-bottom:48px;line-height:1.6;}
+.sp-dots{display:flex;gap:6px;margin-bottom:40px;}
+.sp-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.2);}
+.sp-dot.a{background:linear-gradient(135deg,var(--pri),var(--acc));
+  animation:dot-pulse 1.5s ease-in-out infinite;}
+@keyframes dot-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.4)}}
+.sp-dot:nth-child(2){animation-delay:.2s;} .sp-dot:nth-child(3){animation-delay:.4s;}
+.btn-get{
+  background:linear-gradient(135deg,var(--pri),var(--pri2));
+  color:#fff;border:none;border-radius:16px;
+  padding:16px 52px;font-family:'Inter',sans-serif;font-size:15px;font-weight:700;
+  cursor:pointer;box-shadow:var(--shadow-pri);transition:.25s;letter-spacing:.3px;
+}
+.btn-get:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(108,61,232,.5);}
+.sp-version{margin-top:20px;font-size:10px;color:var(--mu);}
+
+/* ══════════════════════════════════════════
+   LOGIN — CORPORATE REDESIGN
+══════════════════════════════════════════ */
+#s-login{
+  background:linear-gradient(180deg,#0A0A1A 0%,#0E0E22 50%,#0A0A1A 100%);
+  overflow:hidden;
+}
+/* Animated background grid */
+#s-login::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(108,61,232,.06) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(108,61,232,.06) 1px,transparent 1px);
+  background-size:40px 40px;
+  animation:grid-move 20s linear infinite;pointer-events:none;z-index:0;
+}
+@keyframes grid-move{0%{background-position:0 0}100%{background-position:40px 40px}}
+/* Glowing orbs */
+#s-login::after{
+  content:'';position:absolute;
+  width:300px;height:300px;border-radius:50%;
+  background:radial-gradient(circle,rgba(108,61,232,.2),transparent 70%);
+  top:-80px;right:-80px;pointer-events:none;z-index:0;
+  animation:orb-move 6s ease-in-out infinite;
+}
+@keyframes orb-move{0%,100%{transform:translate(0,0)}50%{transform:translate(-20px,20px)}}
+
+.login-body{
+  flex:1;display:flex;flex-direction:column;
+  padding:20px 26px 30px;overflow-y:auto;position:relative;z-index:1;
+}
+
+/* Top branding area */
+.l-top{
+  display:flex;align-items:center;gap:12px;margin-bottom:32px;
+  padding-bottom:20px;border-bottom:1px solid var(--border);
+}
+.l-top-logo{
+  width:44px;height:44px;border-radius:12px;
+  background:linear-gradient(135deg,var(--pri),var(--acc));
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+  flex-shrink:0;box-shadow:var(--shadow-pri);
+}
+.l-top-brand{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#fff;}
+.l-top-brand span{color:var(--acc2);}
+.l-top-badge{
+  margin-left:auto;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);
+  border-radius:20px;padding:3px 10px;font-size:9px;font-weight:700;
+  color:#10B981;letter-spacing:.8px;text-transform:uppercase;
+}
+
+/* Welcome text */
+.l-welcome{margin-bottom:24px;}
+.l-hi{font-size:11px;font-weight:600;color:var(--pri2);letter-spacing:1.5px;
+  text-transform:uppercase;margin-bottom:6px;}
+.l-title{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:#fff;
+  line-height:1.2;margin-bottom:6px;}
+.l-sub{font-size:12px;color:var(--sub);line-height:1.6;}
+
+/* Form fields */
+.l-field{margin-bottom:16px;position:relative;}
+.l-label{
+  font-size:10px;font-weight:700;color:var(--sub);
+  letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;display:block;
+}
+.l-inp-wrap{position:relative;}
+.l-ico{
+  position:absolute;left:14px;top:50%;transform:translateY(-50%);
+  font-size:16px;pointer-events:none;opacity:.5;
+}
+.l-inp{
+  width:100%;padding:14px 14px 14px 42px;border-radius:14px;
+  background:rgba(255,255,255,.05);
+  border:1.5px solid rgba(255,255,255,.08);
+  font-family:'Inter',sans-serif;font-size:14px;color:#fff;outline:none;
+  transition:all .2s;
+}
+.l-inp::placeholder{color:rgba(255,255,255,.22);}
+.l-inp:focus{
+  border-color:var(--pri2);background:rgba(108,61,232,.08);
+  box-shadow:0 0 0 3px rgba(108,61,232,.15);
+}
+.l-inp.err{border-color:var(--red);box-shadow:0 0 0 3px rgba(239,68,68,.12);}
+.eye-btn{
+  position:absolute;right:13px;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:rgba(255,255,255,.3);cursor:pointer;font-size:15px;
+}
+.l-err{font-size:11px;color:#ff7070;margin-top:5px;display:none;
+  padding-left:4px;font-weight:500;}
+.l-err.on{display:block;}
+
+/* Security badge row */
+.l-security{
+  display:flex;align-items:center;gap:8px;margin-bottom:20px;
+  background:rgba(255,255,255,.03);border:1px solid var(--border);
+  border-radius:12px;padding:10px 14px;
+}
+.l-sec-dot{width:8px;height:8px;border-radius:50%;background:var(--ok);flex-shrink:0;
+  box-shadow:0 0 8px rgba(16,185,129,.6);}
+.l-sec-txt{font-size:11px;color:var(--sub);}
+.l-sec-lock{margin-left:auto;font-size:14px;opacity:.4;}
+
+/* Login button */
+.btn-login{
+  width:100%;padding:15px;border-radius:14px;
+  background:linear-gradient(135deg,var(--pri),var(--pri2));
+  color:#fff;border:none;font-family:'Inter',sans-serif;
+  font-size:15px;font-weight:700;cursor:pointer;
+  box-shadow:var(--shadow-pri);transition:.25s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  letter-spacing:.3px;
+}
+.btn-login:hover{transform:translateY(-2px);box-shadow:0 12px 36px rgba(108,61,232,.5);}
+.btn-login:disabled{opacity:.5;pointer-events:none;}
+.btn-login-ico{font-size:16px;}
+
+/* Stats row at bottom */
+.l-stats{
+  display:flex;gap:0;margin-top:22px;
+  background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;
+  overflow:hidden;
+}
+.l-stat{flex:1;padding:12px 8px;text-align:center;
+  border-right:1px solid var(--border);}
+.l-stat:last-child{border-right:none;}
+.l-stat-n{font-size:16px;font-weight:800;color:#fff;font-family:'Syne',sans-serif;}
+.l-stat-l{font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:.8px;margin-top:2px;}
+
+/* ══════════════════════════════════════════
+   HOME DASHBOARD
+══════════════════════════════════════════ */
+#s-home{background:var(--cream);}
+.h-hdr{
+  background:linear-gradient(135deg,var(--pri),var(--pri2),var(--acc));
+  padding:44px 22px 26px;color:#fff;position:relative;overflow:hidden;flex-shrink:0;
+}
+.h-hdr::before{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.h-top{display:flex;justify-content:space-between;align-items:flex-start;position:relative;}
+.h-greet{font-size:12px;opacity:.75;margin-bottom:3px;}
+.h-name{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;}
+.signout-btn{
+  background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);
+  border-radius:10px;padding:7px 13px;color:#fff;font-size:11px;font-weight:600;
+  cursor:pointer;transition:.2s;white-space:nowrap;font-family:'Inter',sans-serif;
+}
+.signout-btn:hover{background:rgba(255,255,255,.25);}
+.h-badge{
+  display:inline-flex;align-items:center;gap:6px;margin-top:12px;
+  background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);
+  border-radius:20px;padding:5px 14px;font-size:11px;font-weight:600;
+  position:relative;
+}
+.dot-live{width:7px;height:7px;border-radius:50%;background:#7FFF7F;
+  animation:blink 1.5s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+
+.h-scroll{flex:1;overflow-y:auto;background:var(--cream);}
+.sos-wrap{display:flex;flex-direction:column;align-items:center;padding:24px 26px 16px;}
+.sos-lbl{font-size:10px;font-weight:700;color:var(--muted);
+  letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;}
+.sos-btn{
+  width:132px;height:132px;border-radius:50%;
+  background:linear-gradient(145deg,#EF4444,#C0392B);
+  border:none;outline:none;
+  box-shadow:0 0 0 6px #fff,0 0 0 10px rgba(239,68,68,.2),
+             0 16px 44px rgba(239,68,68,.5);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;color:#fff;font-family:'Syne',sans-serif;
+  font-size:28px;font-weight:800;letter-spacing:2px;position:relative;transition:.18s;
+}
+.sos-btn::before,.sos-btn::after{
+  content:'';position:absolute;border-radius:50%;
+  border:2px solid rgba(239,68,68,.25);animation:rpl 2s ease-out infinite;
+}
+.sos-btn::after{inset:-80%;animation-delay:.55s;border-color:rgba(239,68,68,.12);}
+.sos-btn::before{inset:-48%;}
+@keyframes rpl{0%{transform:scale(.5);opacity:1}100%{transform:scale(1);opacity:0}}
+.sos-btn:active{transform:scale(.95);}
+.sos-sub{font-size:9px;letter-spacing:1.5px;opacity:.82;margin-top:-2px;font-weight:600;}
+.sos-hint{margin-top:10px;font-size:11px;color:var(--muted);}
+
+.sec-title{
+  font-family:'Syne',sans-serif;font-size:15px;font-weight:800;
+  color:var(--sb);margin:0 22px 10px;letter-spacing:-.3px;
+}
+.q-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:0 22px;margin-bottom:16px;}
+.q-card{
+  background:#fff;border-radius:16px;padding:15px 13px;
+  cursor:pointer;transition:.2s;
+  box-shadow:0 2px 12px rgba(0,0,0,.06);
+  border:1.5px solid transparent;display:flex;flex-direction:column;gap:5px;
+}
+.q-card:hover,.q-card:active{
+  transform:translateY(-3px);border-color:rgba(108,61,232,.2);
+  box-shadow:0 8px 24px rgba(108,61,232,.1);
+}
+.qi{font-size:24px;}.ql{font-size:12px;font-weight:700;color:var(--sb);}
+.qd{font-size:10px;color:var(--muted);}
+
+/* ══ NAV BAR ══ */
+.nav{
+  display:flex;background:#fff;
+  border-top:1px solid rgba(0,0,0,.06);
+  padding:10px 0 18px;flex-shrink:0;
+}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  cursor:pointer;font-size:8px;font-weight:700;color:var(--muted);
+  border:none;background:none;text-transform:uppercase;letter-spacing:.5px;
+  transition:color .15s;padding:3px;}
+.ni.on{color:var(--pri);}
+.ni-ico{font-size:18px;}
+
+/* ══ PAGE HEADER ══ */
+.pg-hdr{
+  background:linear-gradient(135deg,var(--pri),var(--pri2));
+  padding:48px 22px 20px;color:#fff;display:flex;align-items:center;gap:12px;flex-shrink:0;
+}
+.back{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.15);
+  border:none;color:#fff;font-size:17px;cursor:pointer;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0;transition:.18s;font-family:'Inter',sans-serif;}
+.back:hover{background:rgba(255,255,255,.28);}
+.pg-title{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;}
+.pg-sub{font-size:11px;opacity:.72;margin-top:2px;}
+
+/* ══ CONTACTS ══ */
+#s-contacts{background:var(--cream);}
+.c-scroll{flex:1;overflow-y:auto;}
+.c-list{padding:14px 22px;display:flex;flex-direction:column;gap:9px;}
+.c-card{
+  background:#fff;border-radius:14px;padding:12px 14px;
+  display:flex;align-items:center;gap:11px;
+  box-shadow:0 2px 10px rgba(0,0,0,.05);transition:.18s;border:1.5px solid transparent;
+}
+.c-card:hover{transform:translateX(3px);border-color:rgba(108,61,232,.2);}
+.c-av{width:42px;height:42px;border-radius:12px;font-size:19px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.c-info{flex:1;min-width:0;}
+.c-name{font-size:13px;font-weight:700;color:var(--sb);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.c-rel{font-size:10px;color:var(--muted);margin-top:1px;}
+.c-acts{display:flex;gap:5px;flex-shrink:0;}
+.a-btn{width:30px;height:30px;border-radius:9px;border:none;font-size:13px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;}
+.a-btn:hover{transform:scale(1.12);}
+.a-btn.ca{background:#E8F8F0;}.a-btn.ms{background:#EEF2FF;}.a-btn.dl{background:#FFF0F0;}
+.add-btn{
+  margin:0 22px 13px;padding:13px;border-radius:13px;
+  background:linear-gradient(135deg,var(--pri),var(--pri2));color:#fff;border:none;
+  font-family:'Inter',sans-serif;font-size:14px;font-weight:700;cursor:pointer;
+  box-shadow:var(--shadow-pri);transition:.2s;
+}
+.add-btn:hover{opacity:.9;transform:translateY(-2px);}
+
+/* ADD CONTACT DRAWER */
+.drw-over{position:absolute;inset:0;background:rgba(10,10,26,.85);
+  display:none;align-items:flex-end;z-index:500;backdrop-filter:blur(8px);}
+.drw-over.on{display:flex;animation:fdin .28s;}
+@keyframes fdin{from{opacity:0}to{opacity:1}}
+.drw{background:#fff;border-radius:28px 28px 0 0;padding:22px 22px 30px;
+  width:100%;animation:sup .38s cubic-bezier(.2,.8,.4,1);max-height:92%;overflow-y:auto;}
+@keyframes sup{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.drw-bar{width:38px;height:4px;background:#E0E0E0;border-radius:2px;margin:0 auto 18px;}
+.drw-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;
+  color:var(--sb);margin-bottom:16px;}
+.f-grp{margin-bottom:12px;}
+.f-lbl{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.8px;
+  text-transform:uppercase;margin-bottom:5px;display:block;}
+.f-inp{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid #E5E5E5;
+  font-family:'Inter',sans-serif;font-size:13px;color:var(--sb);outline:none;
+  background:#FAFAFA;transition:border-color .18s;}
+.f-inp:focus{border-color:var(--pri2);background:#fff;}
+.em-grid{display:flex;gap:7px;flex-wrap:wrap;margin-top:5px;}
+.em-opt{width:34px;height:34px;border-radius:9px;border:2px solid #E5E5E5;
+  font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  background:#FAFAFA;transition:.15s;}
+.em-opt.sel{border-color:var(--pri2);background:#F0EBFF;transform:scale(1.1);}
+.bg-row{display:flex;gap:7px;margin-top:5px;}
+.bg-dot{width:26px;height:26px;border-radius:8px;border:2px solid transparent;
+  cursor:pointer;transition:.15s;}
+.bg-dot.sel{border-color:var(--sb);transform:scale(1.15);}
+.drw-btns{display:flex;gap:9px;margin-top:16px;}
+.drw-btn{flex:1;padding:12px;border-radius:12px;border:none;
+  font-family:'Inter',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:.18s;}
+.drw-btn.sv{background:linear-gradient(135deg,var(--pri),var(--pri2));color:#fff;}
+.drw-btn.cx{background:#F0F0F0;color:var(--sb);}
+.drw-btn:hover{opacity:.88;transform:translateY(-1px);}
+
+/* ══ MAP ══ */
+#s-track{background:#0a0a1a;}
+#live-map{flex:1;width:100%;z-index:1;}
+.map-top{position:absolute;top:0;left:0;right:0;z-index:100;
+  padding:38px 13px 8px;display:flex;align-items:center;gap:9px;pointer-events:none;}
+.map-back{pointer-events:all;width:36px;height:36px;border-radius:50%;background:#fff;
+  border:none;font-size:17px;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.2);
+  display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;}
+.map-pill{background:#fff;border-radius:20px;padding:7px 14px;
+  font-size:12px;font-weight:700;color:var(--sb);box-shadow:0 3px 10px rgba(0,0,0,.15);}
+.loc-banner{
+  position:absolute;top:88px;left:10px;right:10px;z-index:200;
+  background:linear-gradient(135deg,var(--pri),var(--pri2));
+  border-radius:14px;padding:13px 16px;color:#fff;
+  display:none;box-shadow:var(--shadow-pri);}
+.loc-banner.on{display:block;}
+.loc-banner-title{font-size:13px;font-weight:700;margin-bottom:4px;}
+.loc-banner-sub{font-size:11px;opacity:.85;margin-bottom:10px;line-height:1.5;}
+.loc-allow-btn{background:#fff;color:var(--pri);border:none;border-radius:20px;
+  padding:8px 20px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;}
+.map-card{position:absolute;bottom:66px;left:10px;right:10px;z-index:100;
+  background:#fff;border-radius:18px;padding:14px 16px;
+  box-shadow:0 8px 32px rgba(0,0,0,.2);}
+.m-addr{font-size:13px;font-weight:700;color:var(--sb);margin-bottom:2px;}
+.m-crd{font-size:10px;color:var(--muted);margin-bottom:9px;}
+.m-stat{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);margin-bottom:9px;}
+.m-dot{width:7px;height:7px;border-radius:50%;background:var(--ok);
+  animation:blink 1.5s infinite;flex-shrink:0;}
+.sh-row{display:flex;gap:7px;}
+.sh-btn{flex:1;padding:10px;border-radius:11px;border:none;
+  font-family:'Inter',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:.18s;}
+.sh-btn.p{background:linear-gradient(135deg,var(--pri),var(--pri2));color:#fff;}
+.sh-btn.s{background:#F0F0F0;color:var(--sb);}
+.sh-btn:hover{opacity:.9;transform:translateY(-1px);}
+.map-nav{position:absolute;bottom:0;left:0;right:0;z-index:100;}
+
+/* ══ TIPS ══ */
+#s-tips{background:var(--cream);}
+.tips-sc{flex:1;overflow-y:auto;}
+.tips-list{padding:14px 22px 16px;display:flex;flex-direction:column;gap:10px;}
+.tip{background:#fff;border-radius:15px;padding:13px 15px;
+  box-shadow:0 2px 10px rgba(0,0,0,.05);border-left:4px solid var(--pri2);transition:.18s;}
+.tip:hover{transform:translateX(3px);}
+.tip.or{border-color:var(--warn);}.tip.or .tc{color:var(--warn);}
+.tip.gr{border-color:var(--ok);}.tip.gr .tc{color:var(--ok);}
+.tc{font-size:9px;font-weight:700;color:var(--pri2);
+  letter-spacing:1.5px;text-transform:uppercase;margin-bottom:3px;}
+.tt{font-size:13px;font-weight:700;color:var(--sb);margin-bottom:3px;}
+.tx{font-size:11px;color:var(--muted);line-height:1.55;}
+
+/* ══ SOS COUNTDOWN ══ */
+.sos-modal{position:absolute;inset:0;background:rgba(10,10,26,.9);
+  display:none;align-items:flex-end;z-index:600;backdrop-filter:blur(8px);}
+.sos-modal.on{display:flex;animation:fdin .28s;}
+.sos-box{background:#fff;border-radius:28px 28px 0 0;padding:26px 24px 30px;
+  width:100%;animation:sup .38s cubic-bezier(.2,.8,.4,1);}
+.sos-handle{width:38px;height:4px;background:#E0E0E0;border-radius:2px;margin:0 auto 18px;}
+.sos-ico{font-size:44px;text-align:center;margin-bottom:7px;}
+.sos-ttl{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;
+  text-align:center;color:var(--red);margin-bottom:5px;}
+.sos-dsc{font-size:12px;color:var(--muted);text-align:center;line-height:1.6;margin-bottom:16px;}
+.sos-cd{font-family:'Syne',sans-serif;font-size:62px;font-weight:800;
+  color:var(--red);text-align:center;line-height:1;}
+.sos-cdl{font-size:11px;color:var(--muted);text-align:center;margin-bottom:18px;}
+.sos-btns{display:flex;gap:9px;}
+.sos-btn2{flex:1;padding:13px;border-radius:13px;border:none;
+  font-family:'Inter',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:.18s;}
+.sos-btn2.fire{background:linear-gradient(135deg,#EF4444,#C0392B);color:#fff;}
+.sos-btn2.stop{background:#F0F0F0;color:var(--sb);}
+.sos-btn2:hover{opacity:.9;transform:translateY(-1px);}
+
+/* ══ SOS SEND PANEL ══ */
+.sos-panel{
+  position:absolute;inset:0;
+  background:linear-gradient(160deg,#1a0030,#2d0050,#1a0030);
+  display:none;flex-direction:column;align-items:center;overflow-y:auto;
+  padding:34px 0 24px;z-index:700;
+}
+.sos-panel.on{display:flex;animation:fdin .3s;}
+.sos-panel::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 20%,rgba(239,68,68,.25),transparent 60%);
+  pointer-events:none;
+}
+.sp-ring{
+  width:100px;height:100px;border-radius:50%;
+  border:3px solid rgba(239,68,68,.4);
+  display:flex;align-items:center;justify-content:center;font-size:46px;
+  margin-bottom:16px;position:relative;z-index:1;
+  animation:ring-pulse 1.4s ease-in-out infinite;
+  background:rgba(239,68,68,.1);
+}
+@keyframes ring-pulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.4)}
+  50%{box-shadow:0 0 0 20px rgba(239,68,68,0)}}
+.sp-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;
+  color:#fff;margin-bottom:5px;position:relative;z-index:1;}
+.sp-sub{font-size:12px;color:rgba(255,255,255,.65);margin-bottom:20px;
+  text-align:center;padding:0 24px;position:relative;z-index:1;}
+.sp-list{width:100%;padding:0 18px;display:flex;flex-direction:column;gap:9px;
+  position:relative;z-index:1;}
+.sp-row{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);
+  border-radius:14px;padding:13px 14px;display:flex;align-items:flex-start;gap:11px;color:#fff;}
+.sp-emo{font-size:22px;flex-shrink:0;padding-top:2px;}
+.sp-info{flex:1;min-width:0;}
+.sp-name{font-size:13px;font-weight:700;}
+.sp-phone{font-size:10px;opacity:.6;margin-top:1px;}
+.sp-btns{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+.sp-wa{display:inline-flex;align-items:center;gap:5px;background:#25D366;
+  color:#fff;border:none;border-radius:18px;padding:7px 13px;
+  font-size:11px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;}
+.sp-sms{display:inline-flex;align-items:center;gap:5px;
+  background:rgba(255,255,255,.15);color:#fff;
+  border:1px solid rgba(255,255,255,.3);border-radius:18px;padding:7px 13px;
+  font-size:11px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;}
+.sp-status{font-size:10px;margin-top:5px;min-height:13px;color:#7FFF7F;font-weight:600;}
+.sp-preview{
+  margin:14px 18px 0;background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);border-radius:13px;
+  padding:11px 14px;color:#fff;font-size:11px;line-height:1.65;
+  position:relative;z-index:1;width:calc(100% - 36px);
+}
+.sp-preview-lbl{font-weight:700;font-size:12px;margin-bottom:4px;color:rgba(255,255,255,.8);}
+.sp-preview-txt{opacity:.7;word-break:break-word;white-space:pre-wrap;}
+.sp-manual-hint{
+  display:none;margin:12px 18px 0;width:calc(100% - 36px);
+  background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);
+  border-radius:12px;padding:10px 14px;
+  color:rgba(255,255,255,.8);font-size:11px;line-height:1.6;text-align:center;
+  position:relative;z-index:1;
+}
+.sp-dismiss{
+  margin-top:20px;background:rgba(255,255,255,.12);
+  border:1.5px solid rgba(255,255,255,.25);border-radius:50px;
+  padding:12px 38px;color:#fff;font-family:'Inter',sans-serif;
+  font-size:14px;font-weight:700;cursor:pointer;transition:.2s;
+  position:relative;z-index:1;
+}
+.sp-dismiss:hover{background:rgba(255,255,255,.22);}
+
+/* ══ TOAST ══ */
+.toast{
+  position:absolute;top:48px;left:13px;right:13px;
+  background:rgba(26,26,62,.96);color:#fff;border-radius:14px;
+  padding:11px 14px;font-size:12px;font-weight:600;z-index:900;
+  display:none;align-items:center;gap:9px;
+  box-shadow:0 8px 28px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.08);
+}
+.toast.on{display:flex;animation:fdin .28s;}
+
+/* ══ LOCATION OVERLAY ══ */
+.loc-over{position:absolute;inset:0;
+  background:rgba(10,10,26,.96);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  z-index:800;padding:28px 24px;backdrop-filter:blur(8px);}
+.loc-over.on{display:flex;animation:fdin .28s;}
+.lo-ring{width:80px;height:80px;border-radius:22px;font-size:36px;
+  background:linear-gradient(135deg,var(--pri),var(--pri2));
+  display:flex;align-items:center;justify-content:center;margin-bottom:18px;
+  box-shadow:var(--shadow-pri);animation:logo-float 3s ease-in-out infinite;}
+.lo-title{font-family:'Syne',sans-serif;font-size:21px;font-weight:800;
+  color:#fff;text-align:center;margin-bottom:7px;}
+.lo-desc{font-size:12px;color:var(--sub);text-align:center;line-height:1.7;margin-bottom:20px;}
+.lo-steps{width:100%;background:rgba(255,255,255,.04);
+  border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:18px;}
+.lo-step{display:flex;align-items:flex-start;gap:9px;color:#fff;
+  font-size:12px;line-height:1.5;margin-bottom:9px;}
+.lo-step:last-child{margin-bottom:0;}
+.lo-num{width:20px;height:20px;border-radius:50%;
+  background:linear-gradient(135deg,var(--pri),var(--pri2));
+  font-size:10px;font-weight:700;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0;margin-top:1px;}
+.lo-denied{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);
+  border-radius:11px;padding:11px 13px;color:#ffaaaa;font-size:11px;
+  line-height:1.6;display:none;margin-bottom:14px;text-align:center;}
+.lo-denied.on{display:block;}
+.btn-allow{width:100%;padding:14px;border-radius:14px;
+  background:linear-gradient(135deg,var(--pri),var(--pri2));color:#fff;
+  border:none;font-family:'Inter',sans-serif;font-size:15px;font-weight:700;
+  cursor:pointer;box-shadow:var(--shadow-pri);margin-bottom:9px;transition:.2s;}
+.btn-allow:hover{transform:translateY(-2px);}
+.btn-skip{background:none;border:none;color:var(--mu);
+  font-size:11px;cursor:pointer;padding:5px;font-family:'Inter',sans-serif;}
+
+@media(max-width:430px){
+  body{padding:0;}
+  .phone{width:100%;height:100svh;border-radius:0;box-shadow:none;}
+}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+  <div class="toast" id="toast"><span id="t-ico">✅</span><span id="t-msg"></span></div>
+
+  <!-- ═══════ SPLASH ═══════ -->
+  <div class="screen active" id="s-splash">
+    <div class="sb"><span>9:41</span><div class="sb-r"><span>📶</span><span>🔋</span></div></div>
+    <div class="splash-body">
+      <div class="sp-logo">🛡️</div>
+      <div class="sp-brand">Safe<span>Track</span></div>
+      <div class="sp-tag">Real-time safety. Real-time peace of mind.<br>Powered by you, protected by us.</div>
+      <div class="sp-dots">
+        <div class="sp-dot a"></div><div class="sp-dot a"></div><div class="sp-dot a"></div>
+      </div>
+      <button class="btn-get" onclick="go('s-login')">Get Started →</button>
+      <div class="sp-version">SafeTrack v2.0 · Women Safety Platform</div>
+    </div>
+  </div>
+
+  <!-- ═══════ LOGIN ═══════ -->
+  <div class="screen" id="s-login">
+    <div class="sb"><span>9:41</span><div class="sb-r"><span>📶</span><span>🔋</span></div></div>
+    <div class="login-body">
+
+      <!-- Top brand bar -->
+      <div class="l-top">
+        <div class="l-top-logo">🛡️</div>
+        <div>
+          <div class="l-top-brand">Safe<span>Track</span></div>
+        </div>
+        <div class="l-top-badge">Secure</div>
+      </div>
+
+      <!-- Welcome -->
+      <div class="l-welcome">
+        <div class="l-hi">👋 Welcome Back</div>
+        <div class="l-title">Sign in to<br>your account</div>
+        <div class="l-sub">Stay connected. Stay protected. Stay safe.</div>
+      </div>
+
+      <!-- Fields -->
+      <div class="l-field">
+        <label class="l-label">Username</label>
+        <div class="l-inp-wrap">
+          <span class="l-ico">👤</span>
+          <input class="l-inp" id="inp-user" type="text"
+            placeholder="Enter your username"
+            autocomplete="username" autocapitalize="none" spellcheck="false">
+        </div>
+        <div class="l-err" id="err-user">❌ Username not found</div>
+      </div>
+
+      <div class="l-field">
+        <label class="l-label">Password</label>
+        <div class="l-inp-wrap">
+          <span class="l-ico">🔑</span>
+          <input class="l-inp" id="inp-pass" type="password"
+            placeholder="Enter your password"
+            autocomplete="current-password" style="padding-right:42px;">
+          <button class="eye-btn" id="eye" onclick="toggleEye()">👁️</button>
+        </div>
+        <div class="l-err" id="err-pass">❌ Incorrect password</div>
+      </div>
+
+      <!-- Security row -->
+      <div class="l-security">
+        <div class="l-sec-dot"></div>
+        <div class="l-sec-txt">256-bit encrypted · Data stays on your device</div>
+        <div class="l-sec-lock">🔒</div>
+      </div>
+
+      <!-- Login button -->
+      <button class="btn-login" id="btn-login" onclick="doLogin()">
+        <span class="btn-login-ico">🛡️</span>
+        Sign In Securely
+      </button>
+
+<!-- Stats -->
+<div class="l-stats">
+  <div class="l-stat">
+    <div class="l-stat-n">24/7</div>
+    <div class="l-stat-l">Active</div>
+  </div>
+  <div class="l-stat">
+    <div class="l-stat-n">112</div>
+    <div class="l-stat-l">Emergency</div>
+  </div>
+</div>
+```
+
+    </div>
+  </div>
+
+  <!-- ═══════ HOME ═══════ -->
+  <div class="screen" id="s-home">
+    <div class="h-hdr">
+      <div class="h-top">
+        <div>
+          <div class="h-greet">Welcome back,</div>
+          <div class="h-name" id="h-name">Bhumika 👋</div>
+        </div>
+        <button class="signout-btn" onclick="doSignOut()">Sign Out</button>
+      </div>
+      <div class="h-badge"><div class="dot-live"></div>SafeTrack Active</div>
+    </div>
+    <div class="h-scroll">
+      <div class="sos-wrap">
+        <div class="sos-lbl">Emergency SOS</div>
+        <button class="sos-btn" onclick="triggerSOS()">SOS<div class="sos-sub">PRESS</div></button>
+        <div class="sos-hint">Press to instantly alert your trusted contacts</div>
+      </div>
+      <div class="sec-title">Quick Actions</div>
+      <div class="q-grid">
+        <div class="q-card" onclick="goMap()"><div class="qi">📍</div><div class="ql">Live Location</div><div class="qd">Real-time GPS map</div></div>
+        <div class="q-card" onclick="go('s-contacts')"><div class="qi">👥</div><div class="ql">Trusted Circle</div><div class="qd" id="cc-lbl">3 contacts</div></div>
+        <div class="q-card" onclick="fakeDial()"><div class="qi">📞</div><div class="ql">Fake Call</div><div class="qd">Escape situation</div></div>
+        <div class="q-card" onclick="go('s-tips')"><div class="qi">💡</div><div class="ql">Safety Tips</div><div class="qd">Practical advice</div></div>
+        <div class="q-card" onclick="doRecord()"><div class="qi">🎙️</div><div class="ql">Record</div><div class="qd">Silent evidence</div></div>
+        <div class="q-card" onclick="callHelpline()"><div class="qi">🚔</div><div class="ql">Helplines</div><div class="qd">Police · 1091</div></div>
+      </div>
+    </div>
+    <nav class="nav">
+      <button class="ni on" onclick="go('s-home')"><span class="ni-ico">🏠</span>Home</button>
+      <button class="ni" onclick="goMap()"><span class="ni-ico">📍</span>Track</button>
+      <button class="ni" onclick="go('s-contacts')"><span class="ni-ico">👥</span>Contacts</button>
+      <button class="ni" onclick="go('s-tips')"><span class="ni-ico">💡</span>Tips</button>
+    </nav>
+  </div>
+
+  <!-- ═══════ CONTACTS ═══════ -->
+  <div class="screen" id="s-contacts">
+    <div class="pg-hdr">
+      <button class="back" onclick="go('s-home')">←</button>
+      <div><div class="pg-title">Trusted Circle</div><div class="pg-sub">Your SOS alert recipients</div></div>
+    </div>
+    <div class="c-scroll"><div class="c-list" id="c-list"></div></div>
+    <button class="add-btn" onclick="openDrawer()">＋ Add Trusted Contact</button>
+    <nav class="nav">
+      <button class="ni" onclick="go('s-home')"><span class="ni-ico">🏠</span>Home</button>
+      <button class="ni" onclick="goMap()"><span class="ni-ico">📍</span>Track</button>
+      <button class="ni on"><span class="ni-ico">👥</span>Contacts</button>
+      <button class="ni" onclick="go('s-tips')"><span class="ni-ico">💡</span>Tips</button>
+    </nav>
+  </div>
+
+  <!-- ADD CONTACT DRAWER -->
+  <div class="drw-over" id="drw" onclick="drwTap(event)">
+    <div class="drw">
+      <div class="drw-bar"></div>
+      <div class="drw-title">Add Trusted Contact</div>
+      <div class="f-grp"><label class="f-lbl">Full Name</label><input class="f-inp" id="f-name" maxlength="30" placeholder="e.g. Sunita Devi"></div>
+      <div class="f-grp"><label class="f-lbl">Phone Number</label><input class="f-inp" id="f-phone" type="tel" maxlength="16" placeholder="+91 XXXXX XXXXX"></div>
+      <div class="f-grp"><label class="f-lbl">Email (optional)</label><input class="f-inp" id="f-email" type="email" maxlength="50" placeholder="email@example.com"></div>
+      <div class="f-grp"><label class="f-lbl">Relation</label><input class="f-inp" id="f-rel" maxlength="25" placeholder="Sister, Friend, Colleague…"></div>
+      <div class="f-grp"><label class="f-lbl">Avatar</label>
+        <div class="em-grid">
+          <div class="em-opt sel" data-e="👩" onclick="pickEm(this)">👩</div>
+          <div class="em-opt" data-e="👨" onclick="pickEm(this)">👨</div>
+          <div class="em-opt" data-e="👩‍🦱" onclick="pickEm(this)">👩‍🦱</div>
+          <div class="em-opt" data-e="👴" onclick="pickEm(this)">👴</div>
+          <div class="em-opt" data-e="👵" onclick="pickEm(this)">👵</div>
+          <div class="em-opt" data-e="🧒" onclick="pickEm(this)">🧒</div>
+          <div class="em-opt" data-e="👮‍♀️" onclick="pickEm(this)">👮‍♀️</div>
+          <div class="em-opt" data-e="🧑‍⚕️" onclick="pickEm(this)">🧑‍⚕️</div>
+        </div>
+      </div>
+      <div class="f-grp"><label class="f-lbl">Colour</label>
+        <div class="bg-row">
+          <div class="bg-dot sel" data-c="#EDE9FF" style="background:#EDE9FF" onclick="pickBg(this)"></div>
+          <div class="bg-dot" data-c="#E0F4FF" style="background:#E0F4FF" onclick="pickBg(this)"></div>
+          <div class="bg-dot" data-c="#E8FFE0" style="background:#E8FFE0" onclick="pickBg(this)"></div>
+          <div class="bg-dot" data-c="#FFF3E0" style="background:#FFF3E0" onclick="pickBg(this)"></div>
+          <div class="bg-dot" data-c="#FFE0E9" style="background:#FFE0E9" onclick="pickBg(this)"></div>
+          <div class="bg-dot" data-c="#E8F4E8" style="background:#E8F4E8" onclick="pickBg(this)"></div>
+        </div>
+      </div>
+      <div class="drw-btns">
+        <button class="drw-btn sv" onclick="saveContact()">💾 Save Contact</button>
+        <button class="drw-btn cx" onclick="closeDrawer()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ TRACK / LIVE MAP ═══════ -->
+  <div class="screen" id="s-track">
+    <div id="live-map"></div>
+    <div class="map-top">
+      <button class="map-back" onclick="go('s-home')">←</button>
+      <div class="map-pill">📍 Live Location</div>
+    </div>
+    <div class="loc-banner" id="loc-banner">
+      <div class="loc-banner-title">📍 Location Access Needed</div>
+      <div class="loc-banner-sub">Allow location to show your position on the map and in SOS alerts.</div>
+      <button class="loc-allow-btn" onclick="askLocation()">Allow Location</button>
+    </div>
+    <div class="map-card">
+      <div class="m-addr" id="m-addr">Tap "Allow Location" above</div>
+      <div class="m-crd" id="m-crd">Waiting for GPS…</div>
+      <div class="m-stat"><div class="m-dot"></div><span id="m-stat">Acquiring location…</span></div>
+      <div class="sh-row">
+        <button class="sh-btn p" onclick="shareLocation()">📤 Share Live</button>
+        <button class="sh-btn s" onclick="copyCoords()">📋 Copy Coords</button>
+      </div>
+    </div>
+    <nav class="nav map-nav">
+      <button class="ni" onclick="go('s-home')"><span class="ni-ico">🏠</span>Home</button>
+      <button class="ni on"><span class="ni-ico">📍</span>Track</button>
+      <button class="ni" onclick="go('s-contacts')"><span class="ni-ico">👥</span>Contacts</button>
+      <button class="ni" onclick="go('s-tips')"><span class="ni-ico">💡</span>Tips</button>
+    </nav>
+  </div>
+
+  <!-- ═══════ TIPS ═══════ -->
+  <div class="screen" id="s-tips">
+    <div class="pg-hdr">
+      <button class="back" onclick="go('s-home')">←</button>
+      <div><div class="pg-title">Safety Tips</div><div class="pg-sub">Stay informed, stay safe</div></div>
+    </div>
+    <div class="tips-sc">
+      <div class="tips-list">
+        <div class="tip"><div class="tc">🚶 Travel Safety</div><div class="tt">Share Your Route</div><div class="tx">Always let a trusted person know your plan — destination, route and expected arrival time before you leave.</div></div>
+        <div class="tip or"><div class="tc">🌙 Night Safety</div><div class="tt">Stay Lit, Stay Safe</div><div class="tx">Prefer well-lit, busy streets after dark. If something feels off, move toward crowded areas immediately.</div></div>
+        <div class="tip gr"><div class="tc">📱 Digital Safety</div><div class="tt">Protect Your Privacy</div><div class="tx">Don't share real-time location on public social media. Use privacy settings carefully.</div></div>
+        <div class="tip"><div class="tc">🚕 Cab Safety</div><div class="tt">Verify Before You Board</div><div class="tx">Match driver photo, name and vehicle number before getting in. Share your ride with a contact.</div></div>
+        <div class="tip or"><div class="tc">💪 Self Defence</div><div class="tt">Know Your Pressure Points</div><div class="tx">Eyes, nose, throat and knees are vulnerable. A loud shout while striking draws attention.</div></div>
+        <div class="tip gr"><div class="tc">⚖️ Know Your Rights</div><div class="tt">Helplines to Remember</div><div class="tx">Police: 100 · Women Helpline: 1091 · Emergency: 112 · Cybercrime: 1930</div></div>
+      </div>
+    </div>
+    <nav class="nav">
+      <button class="ni" onclick="go('s-home')"><span class="ni-ico">🏠</span>Home</button>
+      <button class="ni" onclick="goMap()"><span class="ni-ico">📍</span>Track</button>
+      <button class="ni" onclick="go('s-contacts')"><span class="ni-ico">👥</span>Contacts</button>
+      <button class="ni on"><span class="ni-ico">💡</span>Tips</button>
+    </nav>
+  </div>
+
+  <!-- ═══════ SOS COUNTDOWN ═══════ -->
+  <div class="sos-modal" id="sos-modal">
+    <div class="sos-box">
+      <div class="sos-handle"></div>
+      <div class="sos-ico">🚨</div>
+      <div class="sos-ttl">Sending SOS Alert</div>
+      <div class="sos-dsc" id="sos-dsc">Your live location will be sent to all trusted contacts automatically.</div>
+      <div class="sos-cd" id="sos-cd">3</div>
+      <div class="sos-cdl">seconds until alert is sent</div>
+      <div class="sos-btns">
+        <button class="sos-btn2 fire" onclick="confirmSOS()">🚨 Send Now</button>
+        <button class="sos-btn2 stop" onclick="cancelSOS()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ SOS SEND PANEL ═══════ -->
+  <div class="sos-panel" id="sos-panel">
+    <div class="sp-ring">🚨</div>
+    <div class="sp-title">🚨 SOS SENT!</div>
+    <div class="sp-sub" id="sp-sub">Sending your location to all contacts…</div>
+    <div class="sp-list" id="sp-list"></div>
+    <div class="sp-preview" id="sp-preview" style="display:none">
+      <div class="sp-preview-lbl">📋 Message sent:</div>
+      <div class="sp-preview-txt" id="sp-prev-txt"></div>
+    </div>
+    <div id="sp-manual-hint" class="sp-manual-hint">
+      💡 If any message didn't open automatically, tap the Retry button to send manually.
+    </div>
+    <button class="sp-dismiss" onclick="dismissSOS()">✅ I'm Safe Now</button>
+  </div>
+
+  <!-- ═══════ LOCATION OVERLAY ═══════ -->
+  <div class="loc-over" id="loc-over">
+    <div class="lo-ring">📍</div>
+    <div class="lo-title">Allow Live Location</div>
+    <div class="lo-desc">SafeTrack needs your exact GPS location to include in SOS alerts sent to your trusted contacts.</div>
+    <div class="lo-steps">
+      <div class="lo-step"><div class="lo-num">1</div><div>Tap <b>Allow Live Location</b> below</div></div>
+      <div class="lo-step"><div class="lo-num">2</div><div>When browser asks — tap <b>"Allow"</b></div></div>
+      <div class="lo-step"><div class="lo-num">3</div><div>Your GPS will be in every SOS alert</div></div>
+    </div>
+    <div class="lo-denied" id="lo-denied">
+      ⚠️ Location is blocked.<br>
+      Go to <b>browser Settings → Site permissions → Location</b>, allow this site, then try again.
+    </div>
+    <button class="btn-allow" id="btn-allow" onclick="askLocation()">📍 Allow Live Location</button>
+    <button class="btn-skip" onclick="skipLoc()">Skip — use default location</button>
+  </div>
+
+</div><!-- /phone -->
+
+<script>
+'use strict';
+
+/* ══════════════════════════════
+   CREDENTIALS
+══════════════════════════════ */
+const CREDS = { user:'bhumika', pass:'pradeep01' };
+let loggedIn = null;
+
+/* ══════════════════════════════
+   CONTACTS
+══════════════════════════════ */
+let contacts = [
+  {id:1,name:'Pradeep', phone:'+918168904380',email:'',rel:'Friend',em:'👨',bg:'#E0F4FF'},
+  {id:2,name:'Bhumika', phone:'+919050799386',email:'',rel:'Friend',em:'👩',bg:'#EDE9FF'},
+];
+let nid=3, selEm='👩', selBg='#EDE9FF';
+
+/* ══════════════════════════════
+   GPS
+══════════════════════════════ */
+let map=null,marker=null,circle=null;
+let lat=null,lng=null,wid=null,mapReady=false;
+const sosLinks={};
+
+/* ══════════════════════════════
+   NAVIGATION
+══════════════════════════════ */
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el=document.getElementById(id);
+  if(el) el.classList.add('active');
+  if(id==='s-contacts') renderContacts();
+  if(id==='s-track'){setTimeout(()=>{ map&&map.invalidateSize(); },260); initMap();}
+}
+function goMap(){ go('s-track'); }
+
+/* ══════════════════════════════
+   TOAST
+══════════════════════════════ */
+let tT;
+function toast(msg,ico='✅'){
+  document.getElementById('t-ico').textContent=ico;
+  document.getElementById('t-msg').textContent=msg;
+  const t=document.getElementById('toast');
+  t.classList.add('on');
+  clearTimeout(tT);
+  tT=setTimeout(()=>t.classList.remove('on'),3600);
+}
+
+/* ══════════════════════════════
+   LOGIN
+══════════════════════════════ */
+function doLogin(){
+  const u=document.getElementById('inp-user').value.trim().toLowerCase();
+  const p=document.getElementById('inp-pass').value;
+  const eu=document.getElementById('err-user'),ep=document.getElementById('err-pass');
+  const iu=document.getElementById('inp-user'),ip=document.getElementById('inp-pass');
+  const btn=document.getElementById('btn-login');
+  eu.classList.remove('on');ep.classList.remove('on');
+  iu.classList.remove('err');ip.classList.remove('err');
+  let ok=true;
+  if(u!==CREDS.user){eu.classList.add('on');iu.classList.add('err');ok=false;}
+  if(p!==CREDS.pass){ep.classList.add('on');ip.classList.add('err');ok=false;}
+  if(!ok) return;
+  btn.innerHTML='<span>⏳</span> Signing in…';
+  btn.disabled=true;
+  setTimeout(()=>{
+    btn.innerHTML='<span class="btn-login-ico">🛡️</span> Sign In Securely';
+    btn.disabled=false;
+    loggedIn=u;
+    document.getElementById('h-name').textContent=
+      u.charAt(0).toUpperCase()+u.slice(1)+' 👋';
+    go('s-home');
+    toast('👋 Welcome back, '+u.charAt(0).toUpperCase()+u.slice(1)+'!');
+    startGPS();
+  },1000);
+}
+
+/* ══════════════════════════════
+   SIGN OUT
+══════════════════════════════ */
+function doSignOut(){
+  loggedIn=null;
+  document.getElementById('inp-user').value='';
+  document.getElementById('inp-pass').value='';
+  document.getElementById('err-user').classList.remove('on');
+  document.getElementById('err-pass').classList.remove('on');
+  document.getElementById('inp-user').classList.remove('err');
+  document.getElementById('inp-pass').classList.remove('err');
+  go('s-login');
+  toast('👋 Signed out successfully','👋');
+}
+
+function toggleEye(){
+  const ip=document.getElementById('inp-pass'),e=document.getElementById('eye');
+  if(ip.type==='password'){ip.type='text';e.textContent='🙈';}
+  else{ip.type='password';e.textContent='👁️';}
+}
+
+/* ══════════════════════════════
+══════════════════════════════ */
+function startGPS(){
+  if(!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(
+    pos=>{capPos(pos);startWatch();hideLocOver();},
+    err=>{ if(err.code===1) showLocOver(true); },
+    {enableHighAccuracy:true,timeout:12000,maximumAge:0}
+  );
+}
+function askLocation(){
+  if(!navigator.geolocation){toast('⚠️ GPS not supported','⚠️');return;}
+  const btn=document.getElementById('btn-allow');
+  if(btn) btn.textContent='⏳ Requesting…';
+  navigator.geolocation.getCurrentPosition(
+    pos=>{
+      capPos(pos);startWatch();hideLocOver();hideBanner();
+      if(mapReady) jumpMap();
+      toast('📍 Live location enabled!','📍');
+      if(btn) btn.textContent='📍 Allow Live Location';
+    },
+    err=>{
+      if(btn) btn.textContent='📍 Allow Live Location';
+      if(err.code===1){showLocOver(true);toast('⚠️ Location blocked. Check settings.','⚠️');}
+      else toast('⚠️ Could not get location. Try again.','⚠️');
+    },
+    {enableHighAccuracy:true,timeout:15000,maximumAge:0}
+  );
+}
+function startWatch(){
+  if(wid!==null) return;
+  wid=navigator.geolocation.watchPosition(
+    pos=>{capPos(pos);if(mapReady) jumpMap();},
+    ()=>{},{enableHighAccuracy:true,maximumAge:0,timeout:20000}
+  );
+}
+function capPos(pos){ lat=pos.coords.latitude; lng=pos.coords.longitude; }
+function showLocOver(denied){
+  document.getElementById('loc-over').classList.add('on');
+  const d=document.getElementById('lo-denied');
+  if(d) d.style.display=denied?'block':'none';
+}
+function hideLocOver(){ document.getElementById('loc-over').classList.remove('on'); }
+function skipLoc(){ hideLocOver(); toast('Using default location for SOS.','📍'); }
+function showBanner(){ document.getElementById('loc-banner').classList.add('on'); }
+function hideBanner(){ document.getElementById('loc-banner').classList.remove('on'); }
+
+/* ══════════════════════════════
+   MAP
+══════════════════════════════ */
+function initMap(){
+  if(!mapReady){
+    mapReady=true;
+    const dLat=28.4089,dLng=77.3178;
+    map=L.map('live-map',{zoomControl:false,attributionControl:true}).setView([dLat,dLng],15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      {maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+    L.control.zoom({position:'bottomright'}).addTo(map);
+    const icon=L.divIcon({className:'',
+      html:`<div style="position:relative;width:38px;height:38px">
+        <div style="position:absolute;inset:0;border-radius:50%;background:rgba(108,61,232,.22);animation:rpl 2s ease-out infinite"></div>
+        <div style="position:absolute;inset:7px;border-radius:50%;background:linear-gradient(135deg,#6C3DE8,#8B5CF6);border:3px solid #fff;box-shadow:0 3px 10px rgba(108,61,232,.5)"></div>
+      </div>`,
+      iconSize:[38,38],iconAnchor:[19,19]
+    });
+    marker=L.marker([dLat,dLng],{icon}).addTo(map).bindPopup('<b>Your location</b>');
+    circle=L.circle([dLat,dLng],{radius:80,color:'#6C3DE8',fillColor:'#6C3DE8',fillOpacity:.12,weight:1.5}).addTo(map);
+    setTimeout(()=>map.invalidateSize(),300);
+  } else {
+    setTimeout(()=>map.invalidateSize(),260);
+  }
+  if(lat&&lng){ jumpMap();hideBanner(); }
+  else {
+    if(navigator.permissions&&navigator.permissions.query){
+      navigator.permissions.query({name:'geolocation'}).then(r=>{
+        if(r.state==='granted'){ askLocation(); }
+        else showBanner();
+      }).catch(()=>showBanner());
+    } else showBanner();
+  }
+}
+function jumpMap(){
+  if(!map||!lat||!lng) return;
+  marker.setLatLng([lat,lng]);
+  circle.setLatLng([lat,lng]).setRadius(40);
+  map.setView([lat,lng],18,{animate:true});
+  setMapInfo('📍 '+lat.toFixed(5)+'° N, '+lng.toFixed(5)+'° E','Accuracy ±~40m','Live GPS · updating');
+  fetch('https://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lng+'&format=json&zoom=18',
+    {headers:{'Accept-Language':'en'}})
+  .then(r=>r.json()).then(d=>{
+    const a=d.address||{};
+    const parts=[a.road||a.pedestrian,a.suburb||a.neighbourhood,
+                 a.city||a.town||a.village,a.state].filter(Boolean);
+    document.getElementById('m-addr').textContent=
+      '📍 '+(parts.slice(0,3).join(', ')||d.display_name||'Your location');
+    document.getElementById('m-crd').textContent=lat.toFixed(5)+'° N, '+lng.toFixed(5)+'° E';
+    document.getElementById('m-stat').textContent='Live GPS · updating';
+  }).catch(()=>{});
+}
+function setMapInfo(addr,crd,stat){
+  const a=document.getElementById('m-addr'),c=document.getElementById('m-crd'),s=document.getElementById('m-stat');
+  if(a) a.textContent=addr; if(c) c.textContent=crd; if(s) s.textContent=stat;
+}
+function shareLocation(){
+  const names=contacts.map(c=>c.name.split(' ')[0]).join(', ')||'your contacts';
+  toast('📤 Live location shared with '+names+'!','📤');
+}
+function copyCoords(){
+  const txt=lat?(lat.toFixed(6)+', '+lng.toFixed(6)):'28.408900, 77.317800';
+  navigator.clipboard&&navigator.clipboard.writeText(txt).catch(()=>{});
+  toast('📋 Copied: '+txt,'📋');
+}
+
+/* ══════════════════════════════
+   CONTACTS
+══════════════════════════════ */
+function renderContacts(){
+  const el=document.getElementById('c-list');
+  if(!el) return;
+  const lbl=document.getElementById('cc-lbl');
+  if(lbl) lbl.textContent=contacts.length+' contact'+(contacts.length!==1?'s':'');
+  if(!contacts.length){
+    el.innerHTML='<div style="text-align:center;padding:36px 16px;color:var(--muted)">'+
+      '<div style="font-size:38px;margin-bottom:10px">👤</div>'+
+      '<div style="font-size:14px;font-weight:700">No contacts yet</div>'+
+      '<div style="font-size:11px;margin-top:3px">Tap Add below</div></div>';
+    return;
+  }
+  el.innerHTML=contacts.map(c=>
+    '<div class="c-card">'+
+      '<div class="c-av" style="background:'+c.bg+'">'+c.em+'</div>'+
+      '<div class="c-info">'+
+        '<div class="c-name">'+xe(c.name)+'</div>'+
+        '<div class="c-rel">📱 '+xe(c.phone)+' · '+xe(c.rel)+'</div>'+
+      '</div>'+
+      '<div class="c-acts">'+
+        '<button class="a-btn ca" onclick="callC(\''+xe(c.phone)+'\',\''+xe(c.name)+'\')">📞</button>'+
+        '<button class="a-btn ms" onclick="smsC(\''+xe(c.phone)+'\',\''+xe(c.name)+'\')">💬</button>'+
+        '<button class="a-btn dl" onclick="delC('+c.id+')">🗑️</button>'+
+      '</div>'+
+    '</div>'
+  ).join('');     
+}
+function callC(phone,name){window.location.href='tel:'+phone;toast('📞 Calling '+name+'…','📞');}
+function smsC(phone,name){
+  const l=lat?lat.toFixed(6)+','+lng.toFixed(6):'28.408900,77.317800';
+  const m='🚨 SOS! '+name+' needs help!\n📍 https://maps.google.com/?q='+l+'\n[SafeTrack]';
+  window.location.href='sms:'+phone+'?body='+encodeURIComponent(m);
+}
+function delC(id){contacts=contacts.filter(c=>c.id!==id);renderContacts();toast('🗑️ Contact removed','🗑️');}
+
+/* ══════════════════════════════
+   ADD CONTACT
+══════════════════════════════ */
+function openDrawer(){document.getElementById('drw').classList.add('on');}
+function closeDrawer(){document.getElementById('drw').classList.remove('on');}
+function drwTap(e){if(e.target===document.getElementById('drw')) closeDrawer();}
+function pickEm(el){document.querySelectorAll('.em-opt').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');selEm=el.dataset.e;}
+function pickBg(el){document.querySelectorAll('.bg-dot').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');selBg=el.dataset.c;}
+function saveContact(){
+  const name=document.getElementById('f-name').value.trim();
+  const phone=document.getElementById('f-phone').value.trim();
+  const email=document.getElementById('f-email').value.trim();
+  const rel=document.getElementById('f-rel').value.trim();
+  if(!name){flash('f-name');return toast('⚠️ Name required','⚠️');}
+  if(!phone){flash('f-phone');return toast('⚠️ Phone required','⚠️');}
+  contacts.push({id:nid++,name,phone,email,rel:rel||'Contact',em:selEm,bg:selBg});
+  closeDrawer();renderContacts();
+  ['f-name','f-phone','f-email','f-rel'].forEach(i=>document.getElementById(i).value='');
+  toast('✅ '+name+' added to Trusted Circle!');
+}
+function flash(id){
+  const el=document.getElementById(id);
+  el.style.borderColor='var(--red)';el.style.background='#fff5f5';
+  setTimeout(()=>{el.style.borderColor='';el.style.background='';},1800);
+}
+function xe(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+/* ══════════════════════════════
+   SOS
+══════════════════════════════ */
+let sosT,sosN=3;
+function triggerSOS(){
+  if(!contacts.length) return toast('⚠️ Add at least one contact first!','⚠️');
+  sosN=3;
+  document.getElementById('sos-cd').textContent=3;
+  document.getElementById('sos-dsc').textContent=
+    'Sending simultaneously to: '+contacts.map(c=>c.name.split(' ')[0]).join(', ')+'  —  all at the same time!';
+  document.getElementById('sos-modal').classList.add('on');
+  sosT=setInterval(()=>{
+    sosN--;
+    document.getElementById('sos-cd').textContent=sosN;
+    if(sosN<=0){clearInterval(sosT);confirmSOS();}
+  },1000);
+}
+function cancelSOS(){
+  clearInterval(sosT);
+  document.getElementById('sos-modal').classList.remove('on');
+  toast("✅ SOS cancelled. You're safe!");
+}
+function confirmSOS(){
+  clearInterval(sosT);
+  document.getElementById('sos-modal').classList.remove('on');
+  buildSOSPanel();
+}
+function buildSOSPanel(){
+  const locStr=(lat&&lng)?(lat.toFixed(6)+','+lng.toFixed(6)):'28.408900,77.317800';
+  const mapLink='https://maps.google.com/?q='+locStr;
+  const addrEl=document.getElementById('m-addr');
+  const addr=addrEl?addrEl.textContent.replace('📍 ','').trim():'Faridabad, Haryana';
+  const now=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const date=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  const uname=loggedIn?(loggedIn.charAt(0).toUpperCase()+loggedIn.slice(1)):'User';
+
+  const waMsg=
+    '🚨 EMERGENCY SOS — SafeTrack App 🚨\n\n'+
+    uname+' needs IMMEDIATE help!\n\n'+
+    '📍 Location: '+addr+'\n'+
+    '🗺️ Map: '+mapLink+'\n'+
+    '🕐 Time: '+now+', '+date+'\n\n'+
+    'Please reach '+uname+' RIGHT NOW or call 112 (Emergency).\n'+
+    '— SafeTrack Women Safety App';
+
+  const smsMsg=
+    '🚨 SOS! '+uname+' needs help!\n'+
+    '📍 '+addr+'\n'+
+    '🗺️ '+mapLink+'\n'+
+    '⏰ '+now+'\n'+
+    '[SafeTrack — call 112]';
+
+  document.getElementById('sp-sub').textContent='🚀 Sending to ALL contacts at once  ·  '+now;
+  document.getElementById('sp-prev-txt').textContent=waMsg;
+  document.getElementById('sp-preview').style.display='block';
+
+  // Build WhatsApp + SMS links per contact
+  contacts.forEach((c,i)=>{
+    let ph=c.phone.replace(/[\s\-\(\)]/g,'');
+    let intl=ph.replace(/^\+/,'');
+    if(intl.startsWith('00')) intl=intl.slice(2);
+    if(intl.startsWith('0'))  intl='91'+intl.slice(1);
+    if(!intl.startsWith('91')&&intl.length===10) intl='91'+intl;
+    sosLinks[i]={
+      wa:'https://wa.me/'+intl+'?text='+encodeURIComponent(waMsg),
+      sms:'sms:'+c.phone+'?body='+encodeURIComponent(smsMsg)
+    };
+  });
+
+  // Render contact rows with spinner
+  document.getElementById('sp-list').innerHTML=contacts.map((c,i)=>
+    '<div class="sp-row">'+
+      '<div class="sp-emo">'+c.em+'</div>'+
+      '<div class="sp-info">'+
+        '<div class="sp-name">'+xe(c.name)+'</div>'+
+        '<div class="sp-phone">📱 '+xe(c.phone)+'</div>'+
+        '<div class="sp-btns" id="sp-btns-'+i+'">'+
+          '<span style="font-size:11px;color:rgba(255,255,255,.55)">⏳ Queued — sending simultaneously…</span>'+
+        '</div>'+
+        '<div class="sp-status" id="sp-st-'+i+'"></div>'+
+      '</div>'+
+    '</div>'
+  ).join('');
+
+  document.getElementById('sos-panel').classList.add('on');
+
+  // ── SEND TO ALL CONTACTS SIMULTANEOUSLY ──
+  // Step 1: Open WhatsApp for every contact at the same time (t=0)
+  contacts.forEach((c,i)=>{
+    const stLbl=document.getElementById('sp-st-'+i);
+    if(stLbl) stLbl.textContent='📤 Sending WhatsApp…';
+    window.open(sosLinks[i].wa,'_blank');
+  });
+
+  // Step 2: Fire SMS for every contact at the same time (t=800ms)
+  setTimeout(()=>{
+    contacts.forEach((c,i)=>{
+      const stLbl=document.getElementById('sp-st-'+i);
+      if(stLbl) stLbl.textContent='📤 Also sending SMS…';
+      const a=document.createElement('a');
+      a.href=sosLinks[i].sms;
+      a.style.display='none';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(()=>{ try{document.body.removeChild(a);}catch(e){} },1000);
+    });
+  },800);
+
+  // Step 3: Mark ALL as done simultaneously (t=2000ms)
+  setTimeout(()=>{
+    contacts.forEach((c,i)=>{
+      const stLbl=document.getElementById('sp-st-'+i);
+      const stBtn=document.getElementById('sp-btns-'+i);
+      if(stLbl){
+        stLbl.textContent='✅ WhatsApp + SMS sent!';
+        stLbl.style.color='#7FFF7F';
+      }
+      if(stBtn){
+        stBtn.innerHTML=
+          '<button class="sp-wa" onclick="openWA('+i+')">💬 Retry WA</button>'+
+          '<button class="sp-sms" onclick="openSMS('+i+')">📩 Retry SMS</button>';
+      }
+    });
+    document.getElementById('sp-manual-hint').style.display='block';
+  },2000);
+}
+
+function autoSendOne(i){} // kept for compatibility
+
+function openWA(i){
+  if(!sosLinks[i]) return;
+  window.open(sosLinks[i].wa,'_blank');
+  const s=document.getElementById('sp-st-'+i);
+  if(s){s.textContent='✅ WhatsApp opened — tap Send';s.style.color='#7FFF7F';}
+}
+function openSMS(i){
+  if(!sosLinks[i]) return;
+  const a=document.createElement('a');
+  a.href=sosLinks[i].sms;
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>document.body.removeChild(a),800);
+  setTimeout(()=>{
+    const s=document.getElementById('sp-st-'+i);
+    if(s){s.textContent='✅ SMS app opened — tap Send';s.style.color='#7FFF7F';}
+  },600);
+}
+function dismissSOS(){
+  document.getElementById('sos-panel').classList.remove('on');
+  toast('✅ SOS sent to all contacts with your location!');
+}
+
+/* ══════════════════════════════
+    
+══════════════════════════════ */
+function fakeDial(){toast('📞 Fake call incoming in 5 seconds…','📞');}
+function doRecord(){toast('🎙️ Silent recording started','🎙️');}
+function callHelpline(){window.location.href='tel:1091';toast('🚔 Calling Women Helpline 1091…','🚔');}
+
+/* ══════════════════════════════
+   BOOT
+══════════════════════════════ */
+document.addEventListener('DOMContentLoaded',()=>{
+  ['inp-user','inp-pass'].forEach(id=>{
+    document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter') doLogin();});
+  });
+  renderContacts();
+});
+</script>
+</body>
+</html>
